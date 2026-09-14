@@ -2,50 +2,54 @@
 {
   perSystem =
     {
-      config,
       lib,
       pkgs,
       ...
     }:
     let
       mkPackage = import ../toolchain.nix { inherit inputs; };
-      firmwareName = "nix-rust-rp2040";
 
-      release = (mkPackage pkgs).override {
+      releaseElf = (mkPackage pkgs).override {
         profile = "release";
-        dontStrip = true;
+        dontStrip = false;
       };
 
-      debug = (mkPackage pkgs).override {
+      debugElf = (mkPackage pkgs).override {
         profile = "dev";
         dontStrip = true;
       };
 
       mkUf2 =
         name: elf:
-        pkgs.runCommand "${firmwareName}-${name}-uf2" { nativeBuildInputs = [ pkgs.elf2uf2-rs ]; } ''
+        let
+          mainProgram = elf.passthru.mainProgram;
+        in
+        pkgs.runCommand "${mainProgram}-${name}-uf2" { nativeBuildInputs = [ pkgs.elf2uf2-rs ]; } ''
           mkdir -p "$out"
           elf2uf2-rs convert --family rp2040 \
-            "${elf}/bin/${firmwareName}" \
-            "$out/${firmwareName}.uf2"
+            "${elf}/bin/${mainProgram}" \
+            "$out/${mainProgram}.uf2"
         '';
 
-      releaseUf2 = mkUf2 "release" release;
-      debugUf2 = mkUf2 "debug" debug;
+      debug = mkUf2 "debug" debugElf;
+      release = mkUf2 "release" releaseElf;
 
       mkProbeRunner =
         name: elf:
+        let
+          mainProgram = elf.passthru.mainProgram;
+        in
         pkgs.writeShellApplication {
           name = "probe-${name}";
           runtimeInputs = [ pkgs.probe-rs-tools ];
           text = ''
             exec probe-rs run --chip RP2040 --protocol swd "$@" \
-              "${elf}/bin/${firmwareName}"
+              "${elf}/bin/${mainProgram}"
           '';
         };
 
-      probeDebug = mkProbeRunner "debug" debug;
-      probeRelease = mkProbeRunner "release" release;
+      probeDebug = mkProbeRunner "debug" debugElf;
+      probeRelease = mkProbeRunner "release" releaseElf;
 
       mkFlakeApp = package: {
         type = "app";
@@ -54,11 +58,10 @@
     in
     {
       packages = {
-        default = releaseUf2;
-        uf2 = releaseUf2;
-        "debug-uf2" = debugUf2;
-        elf = release;
+        default = release;
         inherit debug release;
+        "debug-elf" = debugElf;
+        "release-elf" = releaseElf;
       };
 
       apps = {
