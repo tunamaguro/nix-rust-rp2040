@@ -19,3 +19,35 @@ SECTIONS {
         KEEP(*(.boot2));
     } > BOOT2
 } INSERT BEFORE .text;
+
+/*
+ * Picotool binary-info header. rp-binary-info expects this to live near the
+ * vector table so Picotool can discover it in the first part of flash.
+ */
+SECTIONS {
+    .boot_info : ALIGN(4)
+    {
+        KEEP(*(.boot_info));
+    } > FLASH
+} INSERT AFTER .vector_table;
+
+/* Start normal code after the binary-info header. */
+_stext = ADDR(.boot_info) + SIZEOF(.boot_info);
+
+SECTIONS {
+    .bi_entries : ALIGN(4)
+    {
+        __bi_entries_start = .;
+        KEEP(*(.bi_entries));
+        . = ALIGN(4);
+        __bi_entries_end = .;
+    } > FLASH
+} INSERT AFTER .text;
+
+/* Available to rp_binary_info::rp_binary_end! when metadata entries use it. */
+SECTIONS {
+    .flash_end :
+    {
+        __flash_binary_end = .;
+    } > FLASH
+} INSERT AFTER .uninit;
