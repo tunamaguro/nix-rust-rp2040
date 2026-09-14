@@ -1,12 +1,16 @@
 { inputs, ... }:
 {
   perSystem =
-    { config, ... }:
+    { config, pkgs, ... }:
     let
-      package = config.packages.debug;
+      package = config.packages."debug-elf";
       inherit (package.passthru) commonArgs cargoArtifacts craneLib;
       src = commonArgs.src;
-      checkArgs = commonArgs // { inherit cargoArtifacts; };
+      firmwareCheckArgs = commonArgs // { inherit cargoArtifacts; };
+      checkArgs = firmwareCheckArgs // {
+        CARGO_BUILD_TARGET = pkgs.stdenv.hostPlatform.rust.rustcTarget;
+        cargoTestExtraArgs = "--lib";
+      };
     in
     {
       checks = {
@@ -18,14 +22,15 @@
         };
 
         clippy = craneLib.cargoClippy (
-          checkArgs
+          firmwareCheckArgs
           // {
-            cargoClippyExtraArgs = "--locked --lib --bin nix-rust-rp2040 -- --deny warnings";
+            cargoClippyExtraArgs = "-- --deny warnings";
           }
         );
 
-        # Bare-metal firmware tests cannot be executed by the host. Keep host
-        # unit tests in a separate crate/library if they are added later.
+        # Keep hardware-independent unit tests executable on the build host.
+        test = craneLib.cargoTest checkArgs;
+
         audit = craneLib.cargoAudit {
           inherit src;
           advisory-db = inputs.advisory-db;
