@@ -9,11 +9,12 @@
   pname ? null,
   cargoBuildExtraArgs ? "",
   rustFlags ? null,
-  doCheck ? false,
-  dontStrip ? true,
+  doCheck ? true,
+  dontStrip ? false,
 }:
 let
   target = "thumbv6m-none-eabi";
+  hostTarget = pkgs.stdenv.hostPlatform.rust.rustcTarget;
   craneLib = crane.overrideToolchain rustToolchainFor;
   rustToolchain = rustToolchainFor pkgs;
 
@@ -43,6 +44,8 @@ let
         "--workspace"
       ];
       inherit cargoBuildExtraArgs;
+      # Avoid compiling a test harness for the bare-metal target while building
+      # dependency artifacts. Host-side tests are run separately below.
       doCheck = false;
     }
   );
@@ -79,18 +82,15 @@ let
     else
       crateInfo.pname;
 
-  profileDir = if profile == "dev" then "debug" else profile;
-
   packageArgs =
     commonArgs
     // {
       inherit cargoArtifacts cargoBuildExtraArgs;
       pname = resolvedPname;
       cargoExtraArgs = packageCargoExtraArgs;
-      installPhaseCommand = ''
-        mkdir -p "$out/bin"
-        cp "target/${target}/${profileDir}/${resolvedMainProgram}" "$out/bin/${resolvedMainProgram}"
-      '';
+      # `.cargo/config.toml` selects the MCU target. Unit tests which do not
+      # depend on MCU hardware should instead execute on the build host.
+      cargoTestExtraArgs = "--lib --target ${hostTarget}";
     };
 in
 craneLib.buildPackage (
@@ -104,7 +104,9 @@ craneLib.buildPackage (
         rustToolchain
         target
         ;
-      firmwareName = resolvedMainProgram;
+      mainProgram = resolvedMainProgram;
     };
+
+    meta.mainProgram = resolvedMainProgram;
   }
 )
