@@ -2,7 +2,7 @@
   perSystem =
     { config, ... }:
     let
-      rustToolchain = config.packages.release.passthru.rustToolchain;
+      rustToolchain = config.packages."release-elf".passthru.rustToolchain;
     in
     {
       treefmt.programs = {

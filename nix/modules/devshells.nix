@@ -1,15 +1,19 @@
 {
   perSystem =
-    { config, ... }:
+    { config, pkgs, ... }:
     let
-      app = config.packages.release;
+      firmware = config.packages."debug-elf";
+      rustToolchain = firmware.passthru.rustToolchain;
     in
     {
-      devShells.default = app.passthru.craneLib.devShell {
-        checks = config.checks;
-        inputsFrom = [ app ];
+      devShells.default = pkgs.mkShell {
+        inputsFrom = builtins.attrValues config.checks ++ [ firmware ];
         packages = [
+          rustToolchain
           config.treefmt.build.wrapper
+          pkgs.picotool
+          pkgs.flip-link
+          pkgs.probe-rs-tools
         ];
       };
     };
