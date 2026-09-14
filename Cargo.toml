@@ -1,7 +1,24 @@
 [package]
-name = "nix-rust-crane"
+name = "nix-rust-rp2040"
 version = "0.1.0"
 edition = "2024"
 license = "MIT OR Apache-2.0"
 
 [dependencies]
+cortex-m = "0.7"
+cortex-m-rt = "0.7"
+embedded-hal = { version = "1.0.0" }
+
+
+defmt = "1"
+defmt-rtt = "1"
+panic-probe = { version = "1", features = ["print-defmt"] }
+
+# HAL
+rp2040-hal = { version = "0.12", features = [
+  "rt",
+  "critical-section-impl",
+  "binary-info",
+  "defmt",
+] }
+rp2040-boot2 = "0.3"
