@@ -1,15 +1,18 @@
 {
   perSystem =
-    { config, ... }:
+    { config, pkgs, ... }:
     let
-      app = config.packages.release;
+      firmware = config.packages.debug;
     in
     {
-      devShells.default = app.passthru.craneLib.devShell {
+      devShells.default = firmware.passthru.craneLib.devShell {
         checks = config.checks;
-        inputsFrom = [ app ];
+        inputsFrom = [ firmware ];
         packages = [
           config.treefmt.build.wrapper
+          pkgs.elf2uf2-rs
+          pkgs.flip-link
+          pkgs.probe-rs-tools
         ];
       };
     };

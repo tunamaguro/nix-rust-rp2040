@@ -10,7 +10,8 @@
     in
     {
       checks = {
-        build = config.packages.release;
+        # Building the default package also verifies ELF -> UF2 conversion.
+        build = config.packages.default;
 
         fmt = craneLib.cargoFmt {
           inherit src;
@@ -19,12 +20,12 @@
         clippy = craneLib.cargoClippy (
           checkArgs
           // {
-            cargoClippyExtraArgs = "--all-targets -- --deny warnings";
+            cargoClippyExtraArgs = "--locked --lib --bin nix-rust-rp2040 -- --deny warnings";
           }
         );
 
-        test = craneLib.cargoTest checkArgs;
-
+        # Bare-metal firmware tests cannot be executed by the host. Keep host
+        # unit tests in a separate crate/library if they are added later.
         audit = craneLib.cargoAudit {
           inherit src;
           advisory-db = inputs.advisory-db;

@@ -9,27 +9,31 @@
   pname ? null,
   cargoBuildExtraArgs ? "",
   rustFlags ? null,
-  doCheck ? true,
-  dontStrip ? false,
+  doCheck ? false,
+  dontStrip ? true,
 }:
 let
+  target = "thumbv6m-none-eabi";
   craneLib = crane.overrideToolchain rustToolchainFor;
   rustToolchain = rustToolchainFor pkgs;
 
-  commonArgs = {
-    src = craneLib.cleanCargoSource ../.;
-    cargoLock = ../Cargo.lock;
-    strictDeps = true;
-    inherit doCheck dontStrip;
+  commonArgs =
+    {
+      # Keep linker scripts and .cargo/config.toml in the Nix source. The
+      # default Cargo-only source filter is too narrow for bare-metal builds.
+      src = lib.cleanSource ../.;
+      cargoLock = ../Cargo.lock;
+      strictDeps = true;
+      nativeBuildInputs = [ pkgs.flip-link ];
 
-    env =
-      {
-        CARGO_PROFILE = profile;
-      }
-      // lib.optionalAttrs (rustFlags != null) {
-        RUSTFLAGS = rustFlags;
-      };
-  };
+      CARGO_BUILD_TARGET = target;
+      CARGO_PROFILE = profile;
+
+      inherit doCheck dontStrip;
+    }
+    // lib.optionalAttrs (rustFlags != null) {
+      RUSTFLAGS = rustFlags;
+    };
 
   cargoArtifacts = craneLib.buildDepsOnly (
     commonArgs
@@ -39,9 +43,7 @@ let
         "--workspace"
       ];
       inherit cargoBuildExtraArgs;
-      # Keep dev/test dependencies in the shared workspace artifact set even
-      # when a final package explicitly disables its own checks.
-      doCheck = true;
+      doCheck = false;
     }
   );
 
@@ -77,12 +79,18 @@ let
     else
       crateInfo.pname;
 
+  profileDir = if profile == "dev" then "debug" else profile;
+
   packageArgs =
     commonArgs
     // {
       inherit cargoArtifacts cargoBuildExtraArgs;
       pname = resolvedPname;
       cargoExtraArgs = packageCargoExtraArgs;
+      installPhaseCommand = ''
+        mkdir -p "$out/bin"
+        cp "target/${target}/${profileDir}/${resolvedMainProgram}" "$out/bin/${resolvedMainProgram}"
+      '';
     };
 in
 craneLib.buildPackage (
@@ -94,10 +102,9 @@ craneLib.buildPackage (
         commonArgs
         craneLib
         rustToolchain
+        target
         ;
-      mainProgram = resolvedMainProgram;
+      firmwareName = resolvedMainProgram;
     };
-
-    meta.mainProgram = resolvedMainProgram;
   }
 )
