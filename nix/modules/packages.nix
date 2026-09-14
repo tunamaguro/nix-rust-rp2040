@@ -24,10 +24,10 @@
         let
           mainProgram = elf.passthru.mainProgram;
         in
-        pkgs.runCommand "${mainProgram}-${name}-uf2" { nativeBuildInputs = [ pkgs.elf2uf2-rs ]; } ''
+        pkgs.runCommand "${mainProgram}-${name}-uf2" { nativeBuildInputs = [ pkgs.picotool ]; } ''
           mkdir -p "$out"
-          elf2uf2-rs convert --family rp2040 \
-            "${elf}/bin/${mainProgram}" \
+          picotool uf2 convert \
+            "${elf}/bin/${mainProgram}" -t elf \
             "$out/${mainProgram}.uf2"
         '';
 
