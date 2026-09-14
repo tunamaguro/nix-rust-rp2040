@@ -2,7 +2,7 @@
   perSystem =
     { config, pkgs, ... }:
     let
-      firmware = config.packages.debug;
+      firmware = config.packages."debug-elf";
     in
     {
       devShells.default = firmware.passthru.craneLib.devShell {
