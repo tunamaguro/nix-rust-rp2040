@@ -1,4 +1,4 @@
-#![cfg_attr(not(test), no_std)]
+#![cfg_attr(target_os = "none", no_std)]
 
 use embedded_hal::{delay::DelayNs, digital::OutputPin};
 use rp2040_hal as hal;
