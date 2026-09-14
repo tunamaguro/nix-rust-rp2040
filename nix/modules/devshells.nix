@@ -10,7 +10,7 @@
         inputsFrom = [ firmware ];
         packages = [
           config.treefmt.build.wrapper
-          pkgs.elf2uf2-rs
+          pkgs.picotool
           pkgs.flip-link
           pkgs.probe-rs-tools
         ];
