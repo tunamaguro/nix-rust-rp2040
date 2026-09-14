@@ -26,7 +26,9 @@ pub static BOOT2: [u8; 256] = rp2040_boot2::BOOT_LOADER_GENERIC_03H;
 pub static PICOTOOL_ENTRIES: [binary_info::EntryAddr; 7] = [
     binary_info::rp_program_name!(c"nix-rust-rp2040"),
     binary_info::rp_cargo_version!(),
-    binary_info::rp_program_description!(c"RP2040 Nix/Rust template: defmt + Pico GPIO25 LED blinky"),
+    binary_info::rp_program_description!(
+        c"RP2040 Nix/Rust template: defmt + Pico GPIO25 LED blinky"
+    ),
     binary_info::rp_program_url!(c"https://github.com/tunamaguro/nix-rust-rp2040"),
     binary_info::rp_program_build_attribute!(),
     binary_info::rp_pico_board!(c"pico"),
