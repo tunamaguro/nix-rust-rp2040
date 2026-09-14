@@ -15,5 +15,8 @@ rustflags = [
 [build]
 target = "thumbv6m-none-eabi"
 
+[alias]
+host-test = "test --lib --target host-tuple"
+
 [env]
 DEFMT_LOG = "debug"
