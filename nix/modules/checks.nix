@@ -9,7 +9,9 @@
 
       firmwareCheckArgs = commonArgs // { inherit cargoArtifacts; };
 
-      hostCheckArgs = builtins.removeAttrs commonArgs [ "CARGO_BUILD_TARGET" ];
+      hostCheckArgs = commonArgs // {
+        CARGO_BUILD_TARGET = "host-tuple";
+      };
       hostCargoArtifacts = craneLib.buildDepsOnly (
         hostCheckArgs
         // {
@@ -17,15 +19,13 @@
             "--locked"
             "--workspace"
             "--lib"
-            "--target"
-            "host-tuple"
           ];
           doCheck = false;
         }
       );
       checkArgs = hostCheckArgs // {
         cargoArtifacts = hostCargoArtifacts;
-        cargoTestExtraArgs = "--lib --target host-tuple";
+        cargoTestExtraArgs = "--lib";
         doCheck = true;
       };
     in
