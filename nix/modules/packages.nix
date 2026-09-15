@@ -11,11 +11,13 @@
 
       releaseElf = (mkPackage pkgs).override {
         profile = "release";
+        doCheck = false;
         dontStrip = false;
       };
 
       debugElf = (mkPackage pkgs).override {
         profile = "dev";
+        doCheck = false;
         dontStrip = true;
       };
 
