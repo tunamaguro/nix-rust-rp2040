@@ -1,7 +1,7 @@
 { inputs, ... }:
 {
   perSystem =
-    { config, lib, ... }:
+    { config, ... }:
     let
       package = config.packages."debug-elf";
       inherit (package.passthru) cargoArtifacts commonArgs craneLib;
@@ -11,22 +11,12 @@
 
       hostCheckArgs = commonArgs // {
         CARGO_BUILD_TARGET = "host-tuple";
+        doCheck = true;
       };
-      hostCargoArtifacts = craneLib.buildDepsOnly (
-        hostCheckArgs
-        // {
-          cargoExtraArgs = lib.escapeShellArgs [
-            "--locked"
-            "--workspace"
-            "--lib"
-          ];
-          doCheck = false;
-        }
-      );
+      hostCargoArtifacts = craneLib.buildDepsOnly hostCheckArgs;
       checkArgs = hostCheckArgs // {
         cargoArtifacts = hostCargoArtifacts;
         cargoTestExtraArgs = "--lib";
-        doCheck = true;
       };
     in
     {
