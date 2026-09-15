@@ -14,7 +14,6 @@
 }:
 let
   target = "thumbv6m-none-eabi";
-  hostTarget = pkgs.stdenv.hostPlatform.rust.rustcTarget;
   craneLib = crane.overrideToolchain rustToolchainFor;
   rustToolchain = rustToolchainFor pkgs;
 
@@ -92,7 +91,7 @@ let
       cargoExtraArgs = packageCargoExtraArgs;
       # `.cargo/config.toml` selects the MCU target. Unit tests which do not
       # depend on MCU hardware should instead execute on the build host.
-      cargoTestExtraArgs = "--lib --target ${hostTarget}";
+      cargoTestExtraArgs = "--lib --target host-tuple";
     };
 in
 craneLib.buildPackage (
