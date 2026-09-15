@@ -12,6 +12,11 @@
           includes = [ "*.rs" ];
         };
 
+        nixfmt = {
+          enable = true;
+          includes = [ "*.nix" ];
+        };
+
         mdformat = {
           enable = true;
           includes = [ "*.md" ];

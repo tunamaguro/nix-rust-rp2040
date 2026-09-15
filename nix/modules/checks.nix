@@ -1,14 +1,23 @@
 { inputs, ... }:
 {
   perSystem =
-    { config, pkgs, ... }:
+    { config, ... }:
     let
       package = config.packages."debug-elf";
-      inherit (package.passthru) commonArgs cargoArtifacts craneLib;
+      inherit (package.passthru) cargoArtifacts commonArgs craneLib;
       src = commonArgs.src;
-      firmwareCheckArgs = commonArgs // { inherit cargoArtifacts; };
-      checkArgs = firmwareCheckArgs // {
-        CARGO_BUILD_TARGET = pkgs.stdenv.hostPlatform.rust.rustcTarget;
+
+      firmwareCheckArgs = commonArgs // {
+        inherit cargoArtifacts;
+      };
+
+      hostCheckArgs = commonArgs // {
+        CARGO_BUILD_TARGET = "host-tuple";
+        doCheck = true;
+      };
+      hostCargoArtifacts = craneLib.buildDepsOnly hostCheckArgs;
+      checkArgs = hostCheckArgs // {
+        cargoArtifacts = hostCargoArtifacts;
         cargoTestExtraArgs = "--lib";
       };
     in
