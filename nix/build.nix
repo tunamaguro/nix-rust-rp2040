@@ -17,23 +17,22 @@ let
   craneLib = crane.overrideToolchain rustToolchainFor;
   rustToolchain = rustToolchainFor pkgs;
 
-  commonArgs =
-    {
-      # Keep linker scripts and .cargo/config.toml in the Nix source. The
-      # default Cargo-only source filter is too narrow for bare-metal builds.
-      src = lib.cleanSource ../.;
-      cargoLock = ../Cargo.lock;
-      strictDeps = true;
-      nativeBuildInputs = [ pkgs.flip-link ];
+  commonArgs = {
+    # Keep linker scripts and .cargo/config.toml in the Nix source. The
+    # default Cargo-only source filter is too narrow for bare-metal builds.
+    src = lib.cleanSource ../.;
+    cargoLock = ../Cargo.lock;
+    strictDeps = true;
+    nativeBuildInputs = [ pkgs.flip-link ];
 
-      CARGO_BUILD_TARGET = target;
-      CARGO_PROFILE = profile;
+    CARGO_BUILD_TARGET = target;
+    CARGO_PROFILE = profile;
 
-      inherit doCheck dontStrip;
-    }
-    // lib.optionalAttrs (rustFlags != null) {
-      RUSTFLAGS = rustFlags;
-    };
+    inherit doCheck dontStrip;
+  }
+  // lib.optionalAttrs (rustFlags != null) {
+    RUSTFLAGS = rustFlags;
+  };
 
   cargoArtifacts = craneLib.buildDepsOnly (
     commonArgs
@@ -83,13 +82,11 @@ let
     else
       crateInfo.pname;
 
-  packageArgs =
-    commonArgs
-    // {
-      inherit cargoArtifacts cargoBuildExtraArgs;
-      pname = resolvedPname;
-      cargoExtraArgs = packageCargoExtraArgs;
-    };
+  packageArgs = commonArgs // {
+    inherit cargoArtifacts cargoBuildExtraArgs;
+    pname = resolvedPname;
+    cargoExtraArgs = packageCargoExtraArgs;
+  };
 in
 craneLib.buildPackage (
   packageArgs

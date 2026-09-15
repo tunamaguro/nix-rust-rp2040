@@ -7,7 +7,9 @@
       inherit (package.passthru) cargoArtifacts commonArgs craneLib;
       src = commonArgs.src;
 
-      firmwareCheckArgs = commonArgs // { inherit cargoArtifacts; };
+      firmwareCheckArgs = commonArgs // {
+        inherit cargoArtifacts;
+      };
 
       hostCheckArgs = commonArgs // {
         CARGO_BUILD_TARGET = "host-tuple";
