@@ -4,10 +4,17 @@
     { config, ... }:
     let
       package = config.packages."debug-elf";
-      inherit (package.passthru) commonArgs cargoArtifacts craneLib;
+      inherit (package.passthru)
+        cargoArtifacts
+        commonArgs
+        craneLib
+        hostArgs
+        hostCargoArtifacts
+        ;
       src = commonArgs.src;
       firmwareCheckArgs = commonArgs // { inherit cargoArtifacts; };
-      checkArgs = firmwareCheckArgs // {
+      checkArgs = hostArgs // {
+        cargoArtifacts = hostCargoArtifacts;
         cargoTestExtraArgs = "--lib --target host-tuple";
       };
     in
