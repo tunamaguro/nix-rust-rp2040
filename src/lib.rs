@@ -45,3 +45,11 @@ pub fn run() -> ! {
         timer.delay_ms(500);
     }
 }
+
+#[cfg(test)]
+mod tests {
+    #[test]
+    fn add() {
+        assert_eq!(1 + 1, 2);
+    }
+}
